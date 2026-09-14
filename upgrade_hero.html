@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전설의 검 강화하기</title>
+    <style>
+        body {
+            background-color: #222;
+            color: #fff;
+            font-family: 'Comic Sans MS', '맑은 고딕', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+        }
+        #game-box {
+            width: 450px;
+            background: #333;
+            border: 6px solid #ffcc00;
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(255, 204, 0, 0.5);
+        }
+        h1 { color: #ffcc00; text-shadow: 2px 2px #000; margin-top: 0; }
+        .display-area {
+            background: #111;
+            border: 3px inset #555;
+            height: 140px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        #item-name { font-size: 22px; font-weight: bold; margin-bottom: 10px; }
+        #item-level { font-size: 36px; color: #00ffcc; text-shadow: 0 0 10px #00ffcc; }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: #444;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .btn-group { display: flex; gap: 10px; }
+        button {
+            flex: 1;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 5px #000;
+        }
+        button:active { transform: translateY(3px); box-shadow: 0 2px #000; }
+        #btn-upgrade { background: #ff4500; color: white; }
+        #btn-upgrade:hover { background: #ff5722; }
+        #btn-work { background: #4caf50; color: white; }
+        #btn-work:hover { background: #66bb6a; }
+        #log {
+            margin-top: 15px;
+            height: 50px;
+            font-size: 14px;
+            color: #aaa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .shake { animation: shake 0.2s infinite; }
+        @keyframes shake {
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-2px, -2px); }
+            100% { transform: translate(2px, -2px); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-box">
+    <h1>⚔️ 무한 강화왕 ⚔️</h1>
+    
+    <div class="display-area" id="display">
+        <div id="item-name" style="color: #aaa;">녹슨 단검</div>
+        <div id="item-level">+0</div>
+    </div>
+
+    <div class="stats">
+        <div>골드: <span id="gold" style="color: #ffd700;">0</span> G</div>
+        <div>성공 확률: <span id="rate" style="color: #00ffcc;">100</span>%</div>
+    </div>
+
+    <div class="btn-group">
+        <button id="btn-work" onclick="work()">💰 알바하기 (+10G)</button>
+        <button id="btn-upgrade" onclick="upgrade()">🔥 강화하기 (<span id="cost">10</span>G)</button>
+    </div>
+
+    <div id="log">버튼을 눌러 강화를 시작하세요!</div>
+</div>
+
+<script>
+    let level = 0;
+    let gold = 0;
+    const names = ["녹슨 단검", "초보자의 검", "강철 검", "은빛 세이버", "화염의 검", "암흑의 대검", "용사령의 검", "신성한 엑스칼리버", "파멸의 레바테인", "신을 뚫는 창", "우주 창조의 파편"];
+    
+    function getSuccessRate(lvl) {
+        if (lvl < 3) return 100;
+        if (lvl < 5) return 80;
+        if (lvl < 7) return 60;
+        if (lvl < 9) return 40;
+        if (lvl < 10) return 20;
+        return 5;
+    }
+
+    function getCost(lvl) {
+        return Math.floor(10 * Math.pow(1.8, lvl));
+    }
+
+    function updateUI() {
+        document.getElementById("gold").innerText = gold.toLocaleString();
+        document.getElementById("item-level").innerText = "+" + level;
+        document.getElementById("item-name").innerText = names[Math.min(level, names.length - 1)];
+        document.getElementById("rate").innerText = getSuccessRate(level);
+        document.getElementById("cost").innerText = getCost(level).toLocaleString();
+        
+        // 레벨별 색상 연출
+        const colors = ["#aaa", "#fff", "#87ceeb", "#00ff00", "#blue", "#purple", "#ff00ff", "#ff4500", "#ff0000", "#gold", "#cyan"];
+        document.getElementById("item-name").style.color = colors[Math.min(level, colors.length - 1)];
+    }
+
+    function work() {
+        gold += 10 + (level * 2);
+        updateUI();
+    }
+
+    function upgrade() {
+        const cost = getCost(level);
+        if (gold < cost) {
+            document.getElementById("log").innerText = "골드가 부족합니다!";
+            return;
+        }
+
+        gold -= cost;
+        const rate = getSuccessRate(level);
+        const rand = Math.random() * 100;
+
+        const display = document.getElementById("display");
+        display.classList.add("shake");
+
+        setTimeout(() => {
+            display.classList.remove("shake");
+            if (rand < rate) {
+                level++;
+                document.getElementById("log").innerHTML = `<span style="color:#00ff00; font-weight:bold;">★ 강화 성공! (+${level}) ★</span>`;
+            } else {
+                if (level >= 5) {
+                    level = 0; // 5강 이상에서 실패 시 파괴
+                    document.getElementById("log").innerHTML = `<span style="color:#ff0000; font-weight:bold;">💥 장비가 파괴되었습니다! (+0 리셋) 💥</span>`;
+                } else {
+                    document.getElementById("log").innerHTML = `<span style="color:#ff9900;">강화 실패... (단계 유지)</span>`;
+                }
+            }
+            updateUI();
+        }, 300);
+    }
+
+    updateUI();
+</script>
+
+</body>
+</html>
